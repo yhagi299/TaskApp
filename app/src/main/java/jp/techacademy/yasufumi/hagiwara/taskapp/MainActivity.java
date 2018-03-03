@@ -8,9 +8,16 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Spinner;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
@@ -30,6 +37,11 @@ public class MainActivity extends AppCompatActivity {
 
     private ListView mListView;
     private TaskAdapter mTaskAdapter;
+
+    private Spinner mSpinner;
+    private List<String> mSpinnerList = Arrays.asList("NN");
+    private String spinnerItems[] = {"test", "aaa"};
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +64,37 @@ public class MainActivity extends AppCompatActivity {
         //ListView設定
         mTaskAdapter = new TaskAdapter(MainActivity.this);
         mListView = (ListView) findViewById(R.id.listView1);
+
+        //spinner
+        mSpinner = findViewById(R.id.find_spinner);
+
+
+        mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Spinner spinner1 = (Spinner)parent;
+                String item = (String)mSpinner.getSelectedItem();
+                Log.d("Spinner", item);
+
+                if (item != "すべて"){
+                    RealmResults<Task> find_list = mRealm.where(Task.class).equalTo("category",item).findAll();
+                    mTaskAdapter.setTaskList(mRealm.copyFromRealm(find_list));
+
+                    mListView.setAdapter(mTaskAdapter);
+                } else {
+                    RealmResults<Task> all_list = mRealm.where(Task.class).findAllSorted("date", Sort.DESCENDING);
+                    mTaskAdapter.setTaskList(mRealm.copyFromRealm(all_list));
+                    mListView.setAdapter(mTaskAdapter);
+                }
+
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
 
         //ListViewをタップした時の処理
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -116,6 +159,29 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void reloadListView() {
+        //Spinner
+        mSpinnerList = new ArrayList<String>();
+
+        RealmResults<Task> allCategory = mRealm.where(Task.class).distinct("category");
+        List<Task>  test_list = mRealm.copyFromRealm(allCategory);
+        int num = test_list.size();
+        String category;
+
+        for (int i =0; i < num+1; i++){
+            if(i == num){
+                category = "すべて";
+            } else {
+                category = test_list.get(i).getCategory();
+            }
+            mSpinnerList.add(category);
+        }
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, mSpinnerList);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mSpinner.setAdapter(adapter);
+
+
+        //listView
         RealmResults<Task> taskRealmResults = mRealm.where(Task.class).findAllSorted("date", Sort.DESCENDING);
 
         mTaskAdapter.setTaskList(mRealm.copyFromRealm(taskRealmResults));

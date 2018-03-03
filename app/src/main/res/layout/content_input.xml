@@ -14,9 +14,16 @@
     tools:showIn="@layout/activity_input">
 
     <EditText
+        android:id="@+id/category_edit_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="カテゴリー"/>
+
+    <EditText
         android:id="@+id/title_edit_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/category_edit_text"
         android:hint="タイトル"/>
 
     <EditText
